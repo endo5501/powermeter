@@ -31,7 +31,7 @@ namespace PowerMeter.Core
             long served = 0L;
             long charge = 0L;
             long discharge = 0L;
-            long accumulated = 0L;
+            long stored = 0L;
 
             foreach (var sample in samples)
             {
@@ -46,7 +46,7 @@ namespace PowerMeter.Core
                 served += sample.EnergyServed;
                 charge += sample.EnergyCharge;
                 discharge += sample.EnergyDischarge;
-                accumulated += sample.EnergyAccumulated;
+                stored += sample.EnergyStored;
             }
 
             if (count == 0)
@@ -78,7 +78,7 @@ namespace PowerMeter.Core
                 dischargeWatt: discharge * (double)tickPerSecond,
                 satisfactionRatio: satisfaction,
                 utilizationRatio: utilization,
-                accumulatedJoule: accumulated);
+                storedJoule: stored);
         }
 
         private static bool IsInScope(NetworkSample sample, PowerScope scope, int planetId, int starId)

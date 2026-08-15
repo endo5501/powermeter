@@ -89,7 +89,9 @@ namespace PowerMeter.Plugin
                         net.energyServed,
                         net.energyCharge,
                         net.energyDischarge,
-                        net.energyAccumulated));
+                        // 蓄電量は energyStored。energyAccumulated は建物ツールチップ用の
+                        // 別の値で、統計ウィンドウの「蓄電量」とは一致しない。
+                        net.energyStored));
                 }
             }
 

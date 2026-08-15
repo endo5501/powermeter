@@ -14,7 +14,7 @@ namespace PowerMeter.Core
             long energyServed,
             long energyCharge = 0L,
             long energyDischarge = 0L,
-            long energyAccumulated = 0L)
+            long energyStored = 0L)
         {
             PlanetId = planetId;
             StarId = starId;
@@ -23,7 +23,7 @@ namespace PowerMeter.Core
             EnergyServed = energyServed;
             EnergyCharge = energyCharge;
             EnergyDischarge = energyDischarge;
-            EnergyAccumulated = energyAccumulated;
+            EnergyStored = energyStored;
         }
 
         /// <summary>この電力網が属する惑星の ID。</summary>
@@ -47,7 +47,12 @@ namespace PowerMeter.Core
         /// <summary>蓄電池から放電された量。</summary>
         public long EnergyDischarge { get; }
 
-        /// <summary>蓄電池に蓄えられている総量。</summary>
-        public long EnergyAccumulated { get; }
+        /// <summary>
+        /// 蓄電池に蓄えられているエネルギー総量。
+        /// ゲーム側の統計ウィンドウが「蓄電量」として使うのもこの値
+        /// (<c>PowerNetwork.energyStored</c>)。よく似た名前の
+        /// <c>energyAccumulated</c> は建物ツールチップ用の別物なので使わない。
+        /// </summary>
+        public long EnergyStored { get; }
     }
 }

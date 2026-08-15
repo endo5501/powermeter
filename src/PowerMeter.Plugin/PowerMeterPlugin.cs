@@ -167,7 +167,7 @@ namespace PowerMeter.Plugin
                 + $" generationW={s.GenerationWatt:F0}"
                 + $" chargeW={s.ChargeWatt:F0}"
                 + $" dischargeW={s.DischargeWatt:F0}"
-                + $" accumulatedJ={s.AccumulatedJoule:F0}");
+                + $" storedJ={s.StoredJoule:F0}");
         }
 
         private static string Describe(PowerSnapshot s)
@@ -185,7 +185,7 @@ namespace PowerMeter.Plugin
                 + $" / 充足 {PowerFormatter.FormatPercent(s.SatisfactionRatio)}"
                 + $" / 充電 {PowerFormatter.FormatWatt(s.ChargeWatt)}"
                 + $" / 放電 {PowerFormatter.FormatWatt(s.DischargeWatt)}"
-                + $" / 蓄電 {PowerFormatter.FormatJoule(s.AccumulatedJoule)}"
+                + $" / 蓄電 {PowerFormatter.FormatJoule(s.StoredJoule)}"
                 + $" / 網数 {s.NetworkCount}";
         }
     }

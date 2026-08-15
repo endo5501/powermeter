@@ -259,13 +259,13 @@ namespace PowerMeter.Core.Tests
         {
             var samples = new[]
             {
-                new NetworkSample(101, 1, 0, 0, 0, energyAccumulated: 1000),
-                new NetworkSample(102, 1, 0, 0, 0, energyAccumulated: 2000),
+                new NetworkSample(101, 1, 0, 0, 0, energyStored: 1000),
+                new NetworkSample(102, 1, 0, 0, 0, energyStored: 2000),
             };
 
             var result = PowerAggregator.Aggregate(samples, PowerScope.Global, 0, 0, TickPerSecond);
 
-            Assert.Equal(3000.0, result.AccumulatedJoule);
+            Assert.Equal(3000.0, result.StoredJoule);
         }
     }
 }

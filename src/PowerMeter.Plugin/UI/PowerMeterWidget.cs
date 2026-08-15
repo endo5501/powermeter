@@ -23,7 +23,7 @@ namespace PowerMeter.Plugin.UI
         private const int ColSat = 6;
         private const int ColCharge = 7;
         private const int ColDischarge = 8;
-        private const int ColAcc = 9;
+        private const int ColStored = 9;
 
         private const int RowHeader = 0;
         private const int RowPlanet = 1;
@@ -130,7 +130,7 @@ namespace PowerMeter.Plugin.UI
             x = PlaceOptionalColumn(
                 ColDischarge, x, valueWidth, rowHeight, pad, gap, fontSize, chargeMode == ChargeColumnMode.Split);
             x = PlaceOptionalColumn(
-                ColAcc, x, valueWidth, rowHeight, pad, gap, fontSize, config.ShowAccumulated.Value);
+                ColStored, x, valueWidth, rowHeight, pad, gap, fontSize, config.ShowAccumulated.Value);
 
             _rootRect.sizeDelta = new Vector2(x + pad, pad * 2f + rowHeight * RowCount);
             ApplyCorner(config);
@@ -202,7 +202,7 @@ namespace PowerMeter.Plugin.UI
             _cells[row, ColGen].text = PowerFormatter.FormatWatt(snapshot.GenerationWatt);
             _cells[row, ColCon].text = PowerFormatter.FormatWatt(snapshot.ConsumptionWatt);
             _cells[row, ColCap].text = PowerFormatter.FormatWatt(snapshot.CapacityWatt);
-            _cells[row, ColAcc].text = PowerFormatter.FormatJoule(snapshot.AccumulatedJoule);
+            _cells[row, ColStored].text = PowerFormatter.FormatJoule(snapshot.StoredJoule);
 
             _cells[row, ColUtil].text = PowerFormatter.FormatPercent(snapshot.UtilizationRatio);
             _cells[row, ColUtil].color =
@@ -243,7 +243,7 @@ namespace PowerMeter.Plugin.UI
             _cells[RowHeader, ColCharge].text =
                 chargeMode == ChargeColumnMode.Split ? _labels.Charge : _labels.NetCharge;
             _cells[RowHeader, ColDischarge].text = _labels.Discharge;
-            _cells[RowHeader, ColAcc].text = _labels.Stored;
+            _cells[RowHeader, ColStored].text = _labels.Stored;
 
             for (var col = 0; col < ColumnCount; col++)
             {
@@ -257,7 +257,7 @@ namespace PowerMeter.Plugin.UI
                 _cells[row, ColGen].color = ValueColor;
                 _cells[row, ColCon].color = ValueColor;
                 _cells[row, ColCap].color = ValueColor;
-                _cells[row, ColAcc].color = ValueColor;
+                _cells[row, ColStored].color = ValueColor;
             }
         }
 

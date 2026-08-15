@@ -16,7 +16,7 @@ namespace PowerMeter.Core
             double dischargeWatt,
             double satisfactionRatio,
             double utilizationRatio,
-            double accumulatedJoule)
+            double storedJoule)
         {
             IsValid = isValid;
             NetworkCount = networkCount;
@@ -28,7 +28,7 @@ namespace PowerMeter.Core
             DischargeWatt = dischargeWatt;
             SatisfactionRatio = satisfactionRatio;
             UtilizationRatio = utilizationRatio;
-            AccumulatedJoule = accumulatedJoule;
+            StoredJoule = storedJoule;
         }
 
         /// <summary>集計対象が存在したか。false の場合、他の値はすべて 0。</summary>
@@ -68,7 +68,7 @@ namespace PowerMeter.Core
         public double UtilizationRatio { get; }
 
         /// <summary>蓄電池の蓄電量 [J]。tick 換算の対象外。</summary>
-        public double AccumulatedJoule { get; }
+        public double StoredJoule { get; }
 
         /// <summary>集計対象が存在しないことを表すスナップショット。</summary>
         public static PowerSnapshot Invalid => default;
