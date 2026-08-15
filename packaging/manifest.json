@@ -1,0 +1,10 @@
+{
+  "name": "PowerMeter",
+  "author": "endo5501",
+  "version_number": "0.1.0",
+  "website_url": "",
+  "description": "現在の惑星・現在の星系・全星系の電力を常時表示するウィジット。発電・需要・容量・使用率・充放電をゲーム画面の隅にまとめて出します。",
+  "dependencies": [
+    "xiaoye97-BepInEx-5.4.17"
+  ]
+}

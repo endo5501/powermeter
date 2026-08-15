@@ -69,11 +69,49 @@
     </Reference>
   </ItemGroup>
 
-  <!-- ビルド後に r2modman プロファイルへ配置 -->
-  <Target Name="DeployToBepInEx" AfterTargets="Build" Condition="'$(PluginDeployDir)' != '' and Exists('$(BepInExDir)')">
+  <!-- ビルド後に r2modman プロファイルへ配置（DeployToProfile=false で無効化） -->
+  <Target Name="DeployToBepInEx" AfterTargets="Build"
+          Condition="'$(DeployToProfile)' == 'true' and '$(PluginDeployDir)' != '' and Exists('$(BepInExDir)')">
     <MakeDir Directories="$(PluginDeployDir)" />
     <Copy SourceFiles="$(TargetPath);$(TargetDir)PowerMeter.Core.dll" DestinationFolder="$(PluginDeployDir)" SkipUnchangedFiles="false" />
     <Message Importance="high" Text="PowerMeter -> $(PluginDeployDir)" />
+  </Target>
+
+  <!-- r2modman の「ローカル mod のインストール」で読める zip を作る -->
+  <PropertyGroup>
+    <RepoRoot>$(MSBuildThisFileDirectory)..\..\</RepoRoot>
+    <PackagingDir>$(RepoRoot)packaging\</PackagingDir>
+    <PackageStageDir>$(RepoRoot)artifacts\package\</PackageStageDir>
+    <PackageOutputDir>$(RepoRoot)artifacts\</PackageOutputDir>
+    <PackageFileName>endo5501-PowerMeter-$(PowerMeterVersion).zip</PackageFileName>
+  </PropertyGroup>
+
+  <Target Name="Package" DependsOnTargets="Build">
+    <Error Condition="'$(Configuration)' != 'Release'"
+           Text="配布用 zip は Release 構成で作成してください: dotnet build -c Release -t:Package" />
+
+    <!-- manifest.json のバージョンが取り残されるのを防ぐ -->
+    <PropertyGroup>
+      <ManifestText>$([System.IO.File]::ReadAllText('$(PackagingDir)manifest.json'))</ManifestText>
+    </PropertyGroup>
+    <Error Condition="!$(ManifestText.Contains('&quot;version_number&quot;: &quot;$(PowerMeterVersion)&quot;'))"
+           Text="packaging/manifest.json の version_number が $(PowerMeterVersion) と一致しません。" />
+
+    <RemoveDir Directories="$(PackageStageDir)" />
+    <MakeDir Directories="$(PackageStageDir)" />
+
+    <!--
+      README のスクリーンショットは同梱しない。zip の大半を占めるうえ、
+      Thunderstore も r2modman も README 内の相対パス画像は解決しないため。
+    -->
+    <Copy SourceFiles="$(PackagingDir)manifest.json;$(PackagingDir)icon.png;$(RepoRoot)README.md"
+          DestinationFolder="$(PackageStageDir)" />
+    <Copy SourceFiles="$(TargetPath);$(TargetDir)PowerMeter.Core.dll" DestinationFolder="$(PackageStageDir)" />
+
+    <MakeDir Directories="$(PackageOutputDir)" />
+    <Delete Files="$(PackageOutputDir)$(PackageFileName)" />
+    <ZipDirectory SourceDirectory="$(PackageStageDir)" DestinationFile="$(PackageOutputDir)$(PackageFileName)" />
+    <Message Importance="high" Text="package -> $(PackageOutputDir)$(PackageFileName)" />
   </Target>
 
 </Project>

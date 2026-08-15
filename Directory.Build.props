@@ -20,6 +20,21 @@
     <BepInExDir Condition="'$(BepInExDir)' == ''">$(AppData)\r2modmanPlus-local\DysonSphereProgram\profiles\Default\BepInEx</BepInExDir>
     <BepInExCoreDir>$(BepInExDir)\core</BepInExCoreDir>
     <PluginDeployDir>$(BepInExDir)\plugins\PowerMeter</PluginDeployDir>
+
+    <!--
+      ビルドのたびにプロファイルへ直接コピーするかどうか。
+      r2modman のローカルインポートで管理する場合は false にすること。
+      true のままだと plugins\PowerMeter\ と r2modman が展開したフォルダの
+      両方に同じプラグインが置かれ、GUID の重複で片方が読み込まれない。
+    -->
+    <DeployToProfile Condition="'$(DeployToProfile)' == ''">true</DeployToProfile>
   </PropertyGroup>
+
+  <!--
+    ソリューション単位で -t:Package を実行できるよう、既定は何もしないターゲットにしておく。
+    実体は PowerMeter.Plugin.csproj が同名ターゲットで上書きする
+    （このファイルはプロジェクト本体より先に読まれるため）。
+  -->
+  <Target Name="Package" />
 
 </Project>

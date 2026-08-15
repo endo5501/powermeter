@@ -41,7 +41,23 @@ Dyson Sphere Program (DSP) 用の MOD です。**現在の惑星・現在の星�
 
 ## 導入
 
-現在は Thunderstore へ配布していないため、ビルドして手動配置します。ビルドすると r2modman のプロファイルへ自動でコピーされます。
+Thunderstore へは配布していませんが、**r2modman のローカルインポートで通常の MOD と同じように管理できます**。他の MOD と並んで一覧に出て、有効・無効の切り替えもできます。
+
+### 方法 A: r2modman で管理する
+
+配布用の zip を作ります。
+
+```
+dotnet build -c Release -t:Package
+```
+
+`artifacts\endo5501-PowerMeter-<version>.zip` ができるので、r2modman の **Settings → Install local mod** から読み込みます。zip には Thunderstore V1 形式の `manifest.json` が入っているため、名前・作者・バージョン・BepInEx への依存は自動的に認識されます。
+
+> **注意**: 方法 B の直接コピーを併用しないでください。`plugins\PowerMeter\` と r2modman が展開したフォルダの両方に同じプラグインが置かれると、GUID が重複して片方が読み込まれません。r2modman 管理へ切り替えるときは `plugins\PowerMeter\` を削除し、`Directory.Build.props` の `DeployToProfile` を `false` にしてください。
+
+### 方法 B: 開発中の直接コピー
+
+ビルドすると、既定でプロファイルの plugins フォルダへ直接コピーされます。コードを直して起動し直すだけで試せるので、開発中はこちらが手軽です。
 
 ```
 dotnet build -c Release
@@ -55,7 +71,9 @@ dotnet build -c Release
   PowerMeter.Core.dll
 ```
 
-あとは r2modman からゲームを起動するだけです。初回起動時に設定ファイルが生成されます。
+この自動コピーは `Directory.Build.props` の `DeployToProfile` で切り替えられます。一時的に止めるだけなら `/p:DeployToProfile=false` を付けてください。
+
+どちらの方法でも、あとは r2modman からゲームを起動するだけです。初回起動時に設定ファイルが生成されます。
 
 ### 使い方
 
@@ -118,7 +136,10 @@ dotnet build -c Release
 
 ```
 PowerMeter.sln
-Directory.Build.props            ゲーム / BepInEx のパスを一元定義
+Directory.Build.props            ゲーム / BepInEx のパス、配置の切り替え
+packaging/
+  manifest.json                  Thunderstore V1 形式。author 付きなのでファイル名規約は不要
+  icon.png                       256x256
 src/
   PowerMeter.Core/               netstandard2.0。ゲーム・Unity 参照ゼロ
     PowerScope.cs                集計範囲 (Planet / Star / Global)
@@ -155,6 +176,18 @@ DSP_BEPINEX_DIR   BepInEx のフォルダ（プロファイル配下）
 ```
 dotnet test
 ```
+
+### パッケージング
+
+```
+dotnet build -c Release -t:Package
+```
+
+`artifacts\endo5501-PowerMeter-<version>.zip` に `manifest.json` / `icon.png` / `README.md` / 2 つの DLL をまとめます。Thunderstore のパッケージ形式そのままなので、将来 Thunderstore へ出すときもこの zip がそのまま使えます。
+
+バージョンは `Directory.Build.props` の `PowerMeterVersion` が唯一の情報源です。`packaging/manifest.json` の `version_number` がこれと食い違っているとパッケージング時にエラーになります。Debug 構成で実行した場合もエラーになります。
+
+README のスクリーンショットは zip に含めていません。Thunderstore も r2modman も README 内の相対パス画像を解決しないため、zip を膨らませるだけになるからです。
 
 ### 電力値の取得元
 
