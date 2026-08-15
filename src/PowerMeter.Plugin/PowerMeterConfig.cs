@@ -121,10 +121,10 @@ namespace PowerMeter.Plugin
                     "充足率がこの値を下回ったら警告色で表示する。",
                     new AcceptableValueRange<int>(0, 100)));
 
-            // 数値の突き合わせが済むまでは既定で有効にしておく。
             DiagnosticLogging = file.Bind(
-                "Diagnostics", "DiagnosticLogging", true,
-                "集計結果を BepInEx のログへ定期出力する。ゲーム内統計ウィンドウとの突き合わせ用。");
+                "Diagnostics", "DiagnosticLogging", false,
+                "集計結果を BepInEx のログへ定期出力する。ゲーム内統計ウィンドウとの突き合わせ用。"
+                + "通常は不要だが、表示値がおかしいときに有効にすると生の W / J 値も出る。");
 
             DiagnosticLogIntervalSeconds = file.Bind(
                 "Diagnostics", "DiagnosticLogIntervalSeconds", 5.0f,
