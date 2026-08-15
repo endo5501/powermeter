@@ -146,6 +146,18 @@ namespace PowerMeter.Plugin
             Logger.LogInfo($"[diag] 惑星   {Describe(Planet)}");
             Logger.LogInfo($"[diag] 星系   {Describe(Star)}");
             Logger.LogInfo($"[diag] 全星系 {Describe(Global)}");
+
+            // 丸めの影響を受けない生の W 値。ゲーム内パネルとの厳密な突き合わせ用。
+            if (Planet.IsValid)
+            {
+                Logger.LogInfo(
+                    "[diag] 惑星raw"
+                    + $" capacityW={Planet.CapacityWatt:F0}"
+                    + $" requiredW={Planet.ConsumptionWatt:F0}"
+                    + $" servedW={Planet.ServedWatt:F0}"
+                    + $" generationW={Planet.GenerationWatt:F0}"
+                    + $" accumulatedJ={Planet.AccumulatedJoule:F0}");
+            }
         }
 
         private static string Describe(PowerSnapshot s)
