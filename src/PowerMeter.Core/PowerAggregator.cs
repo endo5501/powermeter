@@ -71,7 +71,10 @@ namespace PowerMeter.Core
                 generationWatt: generationPerTick * tickPerSecond,
                 consumptionWatt: required * (double)tickPerSecond,
                 servedWatt: served * (double)tickPerSecond,
+                chargeWatt: 0.0,
+                dischargeWatt: 0.0,
                 satisfactionRatio: satisfaction,
+                utilizationRatio: 0.0,
                 accumulatedJoule: accumulated);
         }
 

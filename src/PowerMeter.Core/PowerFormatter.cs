@@ -54,6 +54,23 @@ namespace PowerMeter.Core
         }
 
         /// <summary>
+        /// 符号付きで W 値を整形する（例: "+27.3 GW", "-1.72 GW"）。
+        /// 充放電のように向きが意味を持つ値に使う。
+        /// </summary>
+        public static string FormatSignedWatt(double watt)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// J 値を有効数字 3 桁で単位付き整形する（例: "21.0 GJ", "520 TJ"）。
+        /// </summary>
+        public static string FormatJoule(double joule)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
         /// 充足率（0.0〜1.0）を整数パーセントで整形する（例: "89%"）。
         /// 1.0 未満は切り捨てるため、需要が満たされていない限り "100%" にはならない。
         /// </summary>

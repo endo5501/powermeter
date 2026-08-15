@@ -172,6 +172,89 @@ namespace PowerMeter.Core.Tests
         }
 
         [Fact]
+        public void 充電量と放電量をそれぞれ合算する()
+        {
+            var samples = new[]
+            {
+                new NetworkSample(101, 1, 0, 0, 0, energyCharge: 30, energyDischarge: 20),
+                new NetworkSample(102, 1, 0, 0, 0, energyCharge: 5, energyDischarge: 1),
+            };
+
+            var result = PowerAggregator.Aggregate(samples, PowerScope.Global, 0, 0, TickPerSecond);
+
+            Assert.Equal(35 * TickPerSecond, result.ChargeWatt);
+            Assert.Equal(21 * TickPerSecond, result.DischargeWatt);
+        }
+
+        [Fact]
+        public void 差し引きの充放電は充電から放電を引いた値になる()
+        {
+            var samples = new[]
+            {
+                new NetworkSample(101, 1, 0, 0, 0, energyCharge: 30, energyDischarge: 20),
+                new NetworkSample(102, 1, 0, 0, 0, energyCharge: 5, energyDischarge: 1),
+            };
+
+            var result = PowerAggregator.Aggregate(samples, PowerScope.Global, 0, 0, TickPerSecond);
+
+            Assert.Equal(14 * TickPerSecond, result.NetChargeWatt);
+        }
+
+        [Fact]
+        public void 使用率は実発電量を発電容量で割った値になる()
+        {
+            var samples = new[] { new NetworkSample(101, 1, 200, 100, 100) };
+
+            var result = PowerAggregator.Aggregate(samples, PowerScope.Global, 0, 0, TickPerSecond);
+
+            Assert.Equal(0.5, result.UtilizationRatio, 6);
+        }
+
+        [Fact]
+        public void 発電容量がゼロなら使用率はゼロになる()
+        {
+            var samples = new[] { new NetworkSample(101, 1, 0, 100, 100, energyDischarge: 100) };
+
+            var result = PowerAggregator.Aggregate(samples, PowerScope.Global, 0, 0, TickPerSecond);
+
+            Assert.Equal(0.0, result.UtilizationRatio);
+        }
+
+        // 以下 2 件は実機（電力融通器を使った惑星）で確認した挙動を固定するための回帰テスト。
+        [Fact]
+        public void 融通器から受電している惑星では実発電量がゼロになる()
+        {
+            // 現地の発電機はほぼ動かず、需要は放電で賄われている状態。
+            var samples = new[]
+            {
+                new NetworkSample(101, 1, energyCapacity: 1683, energyRequired: 28666,
+                    energyServed: 28666, energyCharge: 0, energyDischarge: 28666),
+            };
+
+            var result = PowerAggregator.Aggregate(samples, PowerScope.Global, 0, 0, TickPerSecond);
+
+            Assert.Equal(0.0, result.GenerationWatt);
+            Assert.Equal(0.0, result.UtilizationRatio);
+            Assert.Equal(-28666.0 * TickPerSecond, result.NetChargeWatt);
+        }
+
+        [Fact]
+        public void 融通器へ充電している惑星では実発電量が需要と充電の合計になる()
+        {
+            var samples = new[]
+            {
+                new NetworkSample(101, 1, energyCapacity: 1500, energyRequired: 100,
+                    energyServed: 100, energyCharge: 1200, energyDischarge: 0),
+            };
+
+            var result = PowerAggregator.Aggregate(samples, PowerScope.Global, 0, 0, TickPerSecond);
+
+            Assert.Equal(1300.0 * TickPerSecond, result.GenerationWatt);
+            Assert.Equal(1300.0 / 1500.0, result.UtilizationRatio, 6);
+            Assert.Equal(1200.0 * TickPerSecond, result.NetChargeWatt);
+        }
+
+        [Fact]
         public void 蓄電量はtick換算せずそのまま合算する()
         {
             var samples = new[]

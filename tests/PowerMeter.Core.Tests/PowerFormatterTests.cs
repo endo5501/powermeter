@@ -38,6 +38,29 @@ namespace PowerMeter.Core.Tests
         }
 
         [Theory]
+        [InlineData(0.0, "0 W")]
+        [InlineData(0.4, "0 W")]           // 符号を付けるほどの大きさではない
+        [InlineData(1500.0, "+1.50 kW")]
+        [InlineData(27_300_000_000.0, "+27.3 GW")]
+        [InlineData(-1_720_000_000.0, "-1.72 GW")]
+        public void 充放電は符号付きで整形する(double watt, string expected)
+        {
+            Assert.Equal(expected, PowerFormatter.FormatSignedWatt(watt));
+        }
+
+        [Theory]
+        [InlineData(0.0, "0 J")]
+        [InlineData(0.4, "0 J")]
+        [InlineData(999.0, "999 J")]
+        [InlineData(1000.0, "1.00 kJ")]
+        [InlineData(21_000_000_000.0, "21.0 GJ")]
+        [InlineData(520_000_000_000_000.0, "520 TJ")]
+        public void 蓄電量をジュール単位で整形する(double joule, string expected)
+        {
+            Assert.Equal(expected, PowerFormatter.FormatJoule(joule));
+        }
+
+        [Theory]
         [InlineData(1.0, "100%")]
         [InlineData(1.5, "100%")]      // 1.0 を超えても 100% に丸める
         [InlineData(0.891, "89%")]
