@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using BepInEx;
 using PowerMeter.Core;
+using PowerMeter.Plugin.UI;
 using UnityEngine;
 
 namespace PowerMeter.Plugin
@@ -15,11 +16,14 @@ namespace PowerMeter.Plugin
         public const string PluginVersion = "0.1.0";
 
         private readonly List<NetworkSample> _samples = new List<NetworkSample>(256);
+        private readonly PowerMeterWidget _widget = new PowerMeterWidget();
 
         private PowerMeterConfig _config;
         private float _sinceRefresh;
         private float _sinceDiagnosticLog;
         private bool _disabledByError;
+        private bool _configDirty;
+        private bool _userVisible = true;
 
         /// <summary>直近の集計結果。現在の惑星。</summary>
         public PowerSnapshot Planet { get; private set; }
@@ -33,13 +37,44 @@ namespace PowerMeter.Plugin
         private void Awake()
         {
             _config = new PowerMeterConfig(Config);
+            Config.SettingChanged += (sender, args) => _configDirty = true;
             Logger.LogInfo($"{PluginName} {PluginVersion} loaded.");
+        }
+
+        private void OnDestroy()
+        {
+            _widget.Destroy();
         }
 
         private void Update()
         {
-            if (_disabledByError || _config == null || !_config.Enabled.Value)
+            if (_disabledByError || _config == null)
             {
+                return;
+            }
+
+            try
+            {
+                Tick();
+            }
+            catch (Exception e)
+            {
+                _disabledByError = true;
+                _widget.Destroy();
+                Logger.LogError($"{PluginName} を無効化しました（更新中に例外が発生）: {e}");
+            }
+        }
+
+        private void Tick()
+        {
+            if (_config.ToggleHotkey.Value.IsDown())
+            {
+                _userVisible = !_userVisible;
+            }
+
+            if (!_config.Enabled.Value)
+            {
+                _widget.SetVisible(false);
                 return;
             }
 
@@ -53,25 +88,18 @@ namespace PowerMeter.Plugin
             }
 
             _sinceRefresh = 0f;
-
-            try
-            {
-                Refresh();
-            }
-            catch (Exception e)
-            {
-                _disabledByError = true;
-                Logger.LogError($"{PluginName} を無効化しました（更新中に例外が発生）: {e}");
-            }
+            Refresh();
         }
 
         private void Refresh()
         {
-            if (!GamePowerSampler.TryCollect(_samples, out var planetId, out var starId))
+            var sampled = GamePowerSampler.TryCollect(_samples, out var planetId, out var starId);
+            if (!sampled)
             {
                 Planet = PowerSnapshot.Invalid;
                 Star = PowerSnapshot.Invalid;
                 Global = PowerSnapshot.Invalid;
+                _widget.SetVisible(false);
                 return;
             }
 
@@ -80,12 +108,32 @@ namespace PowerMeter.Plugin
             Star = PowerAggregator.Aggregate(_samples, PowerScope.Star, planetId, starId, tps);
             Global = PowerAggregator.Aggregate(_samples, PowerScope.Global, planetId, starId, tps);
 
+            UpdateWidget();
+
             if (_config.DiagnosticLogging.Value
                 && _sinceDiagnosticLog >= _config.DiagnosticLogIntervalSeconds.Value)
             {
                 _sinceDiagnosticLog = 0f;
                 LogDiagnostics(planetId, starId, tps);
             }
+        }
+
+        private void UpdateWidget()
+        {
+            if (!_widget.TryCreate(_config))
+            {
+                // ゲーム UI がまだ用意されていない。次回の更新で再挑戦する。
+                return;
+            }
+
+            if (_configDirty)
+            {
+                _configDirty = false;
+                _widget.ApplyConfig(_config);
+            }
+
+            _widget.UpdateValues(Planet, Star, Global, _config);
+            _widget.SetVisible(_userVisible);
         }
 
         private void LogDiagnostics(int planetId, int starId, int tickPerSecond)
