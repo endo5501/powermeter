@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace PowerMeter.Core
@@ -21,7 +20,72 @@ namespace PowerMeter.Core
             int starId,
             int tickPerSecond)
         {
-            throw new NotImplementedException();
+            if (samples == null)
+            {
+                return PowerSnapshot.Invalid;
+            }
+
+            var count = 0;
+            long capacity = 0L;
+            long required = 0L;
+            long served = 0L;
+            long charge = 0L;
+            long discharge = 0L;
+            long accumulated = 0L;
+
+            foreach (var sample in samples)
+            {
+                if (!IsInScope(sample, scope, planetId, starId))
+                {
+                    continue;
+                }
+
+                count++;
+                capacity += sample.EnergyCapacity;
+                required += sample.EnergyRequired;
+                served += sample.EnergyServed;
+                charge += sample.EnergyCharge;
+                discharge += sample.EnergyDischarge;
+                accumulated += sample.EnergyAccumulated;
+            }
+
+            if (count == 0)
+            {
+                return PowerSnapshot.Invalid;
+            }
+
+            // 実発電量 = 消費側へ供給した分 + 蓄電池へ充電した分 - 蓄電池から放電された分。
+            var generationPerTick = (double)(served + charge - discharge);
+            if (generationPerTick < 0.0)
+            {
+                generationPerTick = 0.0;
+            }
+
+            // 需要が 0 の電力網（消費者がいない）は「満たされている」とみなす。
+            var satisfaction = required > 0L ? (double)served / required : 1.0;
+
+            return new PowerSnapshot(
+                isValid: true,
+                networkCount: count,
+                capacityWatt: capacity * (double)tickPerSecond,
+                generationWatt: generationPerTick * tickPerSecond,
+                consumptionWatt: required * (double)tickPerSecond,
+                servedWatt: served * (double)tickPerSecond,
+                satisfactionRatio: satisfaction,
+                accumulatedJoule: accumulated);
+        }
+
+        private static bool IsInScope(NetworkSample sample, PowerScope scope, int planetId, int starId)
+        {
+            switch (scope)
+            {
+                case PowerScope.Planet:
+                    return sample.PlanetId == planetId;
+                case PowerScope.Star:
+                    return sample.StarId == starId;
+                default:
+                    return true;
+            }
         }
     }
 }
