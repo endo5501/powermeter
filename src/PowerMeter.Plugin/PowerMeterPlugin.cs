@@ -147,17 +147,27 @@ namespace PowerMeter.Plugin
             Logger.LogInfo($"[diag] 星系   {Describe(Star)}");
             Logger.LogInfo($"[diag] 全星系 {Describe(Global)}");
 
-            // 丸めの影響を受けない生の W 値。ゲーム内パネルとの厳密な突き合わせ用。
-            if (Planet.IsValid)
+            // 丸めの影響を受けない生の値。ゲーム内パネルとの厳密な突き合わせ用。
+            LogRaw("惑星", Planet);
+            LogRaw("全星系", Global);
+        }
+
+        private void LogRaw(string scope, PowerSnapshot s)
+        {
+            if (!s.IsValid)
             {
-                Logger.LogInfo(
-                    "[diag] 惑星raw"
-                    + $" capacityW={Planet.CapacityWatt:F0}"
-                    + $" requiredW={Planet.ConsumptionWatt:F0}"
-                    + $" servedW={Planet.ServedWatt:F0}"
-                    + $" generationW={Planet.GenerationWatt:F0}"
-                    + $" accumulatedJ={Planet.AccumulatedJoule:F0}");
+                return;
             }
+
+            Logger.LogInfo(
+                $"[diag] {scope}raw"
+                + $" capacityW={s.CapacityWatt:F0}"
+                + $" requiredW={s.ConsumptionWatt:F0}"
+                + $" servedW={s.ServedWatt:F0}"
+                + $" generationW={s.GenerationWatt:F0}"
+                + $" chargeW={s.ChargeWatt:F0}"
+                + $" dischargeW={s.DischargeWatt:F0}"
+                + $" accumulatedJ={s.AccumulatedJoule:F0}");
         }
 
         private static string Describe(PowerSnapshot s)
@@ -171,7 +181,11 @@ namespace PowerMeter.Plugin
                 + $" / 需要 {PowerFormatter.FormatWatt(s.ConsumptionWatt)}"
                 + $" / 供給 {PowerFormatter.FormatWatt(s.ServedWatt)}"
                 + $" / 容量 {PowerFormatter.FormatWatt(s.CapacityWatt)}"
+                + $" / 使用率 {PowerFormatter.FormatPercent(s.UtilizationRatio)}"
                 + $" / 充足 {PowerFormatter.FormatPercent(s.SatisfactionRatio)}"
+                + $" / 充電 {PowerFormatter.FormatWatt(s.ChargeWatt)}"
+                + $" / 放電 {PowerFormatter.FormatWatt(s.DischargeWatt)}"
+                + $" / 蓄電 {PowerFormatter.FormatJoule(s.AccumulatedJoule)}"
                 + $" / 網数 {s.NetworkCount}";
         }
     }

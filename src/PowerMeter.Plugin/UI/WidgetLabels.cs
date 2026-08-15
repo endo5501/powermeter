@@ -8,7 +8,12 @@ namespace PowerMeter.Plugin.UI
             string generation,
             string demand,
             string capacity,
+            string utilization,
             string satisfaction,
+            string charge,
+            string discharge,
+            string netCharge,
+            string stored,
             string planet,
             string star,
             string global,
@@ -18,7 +23,12 @@ namespace PowerMeter.Plugin.UI
             Generation = generation;
             Demand = demand;
             Capacity = capacity;
+            Utilization = utilization;
             Satisfaction = satisfaction;
+            Charge = charge;
+            Discharge = discharge;
+            NetCharge = netCharge;
+            Stored = stored;
             Planet = planet;
             Star = star;
             Global = global;
@@ -30,7 +40,12 @@ namespace PowerMeter.Plugin.UI
             generation: "発電",
             demand: "需要",
             capacity: "容量",
+            utilization: "使用率",
             satisfaction: "充足",
+            charge: "充電",
+            discharge: "放電",
+            netCharge: "充放電",
+            stored: "蓄電",
             planet: "惑星",
             star: "星系",
             global: "全星系",
@@ -41,7 +56,12 @@ namespace PowerMeter.Plugin.UI
             generation: "Gen",
             demand: "Demand",
             capacity: "Cap",
+            utilization: "Load",
             satisfaction: "Sat",
+            charge: "Charge",
+            discharge: "Discharge",
+            netCharge: "Net",
+            stored: "Stored",
             planet: "Planet",
             star: "System",
             global: "All",
@@ -55,7 +75,17 @@ namespace PowerMeter.Plugin.UI
 
         public string Capacity { get; }
 
+        public string Utilization { get; }
+
         public string Satisfaction { get; }
+
+        public string Charge { get; }
+
+        public string Discharge { get; }
+
+        public string NetCharge { get; }
+
+        public string Stored { get; }
 
         public string Planet { get; }
 

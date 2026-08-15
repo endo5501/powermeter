@@ -12,14 +12,18 @@ namespace PowerMeter.Plugin.UI
     public class PowerMeterWidget
     {
         private const int RowCount = 4;      // ヘッダ + 惑星 + 星系 + 全星系
-        private const int ColumnCount = 6;
+        private const int ColumnCount = 10;
 
         private const int ColLabel = 0;
         private const int ColGen = 1;
         private const int ColSep = 2;
         private const int ColCon = 3;
         private const int ColCap = 4;
-        private const int ColPct = 5;
+        private const int ColUtil = 5;
+        private const int ColSat = 6;
+        private const int ColCharge = 7;
+        private const int ColDischarge = 8;
+        private const int ColAcc = 9;
 
         private const int RowHeader = 0;
         private const int RowPlanet = 1;
@@ -31,6 +35,10 @@ namespace PowerMeter.Plugin.UI
         private static readonly Color LabelColor = new Color(0.72f, 0.82f, 0.90f, 1f);
         private static readonly Color ValueColor = new Color(0.94f, 0.96f, 0.98f, 1f);
         private static readonly Color WarningColor = new Color(1.00f, 0.48f, 0.36f, 1f);
+
+        // ゲーム内パネルの配色に合わせる（充電はオレンジ、放電はシアン）。
+        private static readonly Color ChargeColor = new Color(1.00f, 0.72f, 0.35f, 1f);
+        private static readonly Color DischargeColor = new Color(0.40f, 0.85f, 1.00f, 1f);
 
         private GameObject _root;
         private RectTransform _rootRect;
@@ -90,8 +98,7 @@ namespace PowerMeter.Plugin.UI
             _labels = WidgetLabels.For(config.UseJapanese);
 
             var fontSize = config.FontSize.Value;
-            var showCapacity = config.ShowCapacity.Value;
-            var showSatisfaction = config.ShowSatisfaction.Value;
+            var chargeMode = config.ChargeColumn.Value;
 
             var pad = Mathf.Round(fontSize * 0.6f);
             var gap = Mathf.Round(fontSize * 0.5f);
@@ -99,44 +106,33 @@ namespace PowerMeter.Plugin.UI
             var labelWidth = Mathf.Round(fontSize * 4.6f);
             var valueWidth = Mathf.Round(fontSize * 5.4f);
             var sepWidth = Mathf.Round(fontSize * 0.9f);
-            var pctWidth = Mathf.Round(fontSize * 3.2f);
+            var pctWidth = Mathf.Round(fontSize * 3.4f);
 
+            // 発電 / 需要 は「a / b」と読ませたいので、この 3 列だけは隙間を空けない。
             var x = pad;
-            LayoutColumn(ColLabel, x, labelWidth, rowHeight, pad, fontSize, TextAnchor.MiddleLeft, true);
+            PlaceColumn(ColLabel, x, labelWidth, rowHeight, pad, fontSize, TextAnchor.MiddleLeft, true);
             x += labelWidth + gap;
-            LayoutColumn(ColGen, x, valueWidth, rowHeight, pad, fontSize, TextAnchor.MiddleRight, true);
+            PlaceColumn(ColGen, x, valueWidth, rowHeight, pad, fontSize, TextAnchor.MiddleRight, true);
             x += valueWidth;
-            LayoutColumn(ColSep, x, sepWidth, rowHeight, pad, fontSize, TextAnchor.MiddleCenter, true);
+            PlaceColumn(ColSep, x, sepWidth, rowHeight, pad, fontSize, TextAnchor.MiddleCenter, true);
             x += sepWidth;
-            LayoutColumn(ColCon, x, valueWidth, rowHeight, pad, fontSize, TextAnchor.MiddleRight, true);
+            PlaceColumn(ColCon, x, valueWidth, rowHeight, pad, fontSize, TextAnchor.MiddleRight, true);
             x += valueWidth;
 
-            if (showCapacity)
-            {
-                x += gap;
-                LayoutColumn(ColCap, x, valueWidth, rowHeight, pad, fontSize, TextAnchor.MiddleRight, true);
-                x += valueWidth;
-            }
-            else
-            {
-                LayoutColumn(ColCap, x, valueWidth, rowHeight, pad, fontSize, TextAnchor.MiddleRight, false);
-            }
+            x = PlaceOptionalColumn(
+                ColCap, x, valueWidth, rowHeight, pad, gap, fontSize, config.ShowCapacity.Value);
+            x = PlaceOptionalColumn(
+                ColUtil, x, pctWidth, rowHeight, pad, gap, fontSize, config.ShowUtilization.Value);
+            x = PlaceOptionalColumn(
+                ColSat, x, pctWidth, rowHeight, pad, gap, fontSize, config.ShowSatisfaction.Value);
+            x = PlaceOptionalColumn(
+                ColCharge, x, valueWidth, rowHeight, pad, gap, fontSize, chargeMode != ChargeColumnMode.Off);
+            x = PlaceOptionalColumn(
+                ColDischarge, x, valueWidth, rowHeight, pad, gap, fontSize, chargeMode == ChargeColumnMode.Split);
+            x = PlaceOptionalColumn(
+                ColAcc, x, valueWidth, rowHeight, pad, gap, fontSize, config.ShowAccumulated.Value);
 
-            if (showSatisfaction)
-            {
-                x += gap;
-                LayoutColumn(ColPct, x, pctWidth, rowHeight, pad, fontSize, TextAnchor.MiddleRight, true);
-                x += pctWidth;
-            }
-            else
-            {
-                LayoutColumn(ColPct, x, pctWidth, rowHeight, pad, fontSize, TextAnchor.MiddleRight, false);
-            }
-
-            var width = x + pad;
-            var height = pad * 2f + rowHeight * RowCount;
-
-            _rootRect.sizeDelta = new Vector2(width, height);
+            _rootRect.sizeDelta = new Vector2(x + pad, pad * 2f + rowHeight * RowCount);
             ApplyCorner(config);
 
             var background = BackgroundColor;
@@ -144,7 +140,7 @@ namespace PowerMeter.Plugin.UI
             _background.color = background;
             _background.enabled = config.BackgroundOpacity.Value > 0.001f;
 
-            ApplyHeaderTexts();
+            ApplyHeaderTexts(chargeMode);
         }
 
         /// <summary>集計結果を反映する。</summary>
@@ -156,10 +152,9 @@ namespace PowerMeter.Plugin.UI
                 return;
             }
 
-            var threshold = config.WarningThresholdPercent.Value / 100.0;
-            SetRow(RowPlanet, _labels.Planet, planet, threshold);
-            SetRow(RowStar, _labels.Star, star, threshold);
-            SetRow(RowGlobal, _labels.Global, global, threshold);
+            SetRow(RowPlanet, _labels.Planet, planet, config);
+            SetRow(RowStar, _labels.Star, star, config);
+            SetRow(RowGlobal, _labels.Global, global, config);
         }
 
         public void SetVisible(bool visible)
@@ -183,38 +178,72 @@ namespace PowerMeter.Plugin.UI
             _cells = null;
         }
 
-        private void SetRow(int row, string label, PowerSnapshot snapshot, double warningThreshold)
+        private void SetRow(int row, string label, PowerSnapshot snapshot, PowerMeterConfig config)
         {
             _cells[row, ColLabel].text = label;
+            _cells[row, ColSep].text = "/";
 
             if (!snapshot.IsValid)
             {
-                _cells[row, ColGen].text = _labels.NoData;
-                _cells[row, ColSep].text = "/";
-                _cells[row, ColCon].text = _labels.NoData;
-                _cells[row, ColCap].text = _labels.NoData;
-                _cells[row, ColPct].text = _labels.NoData;
-                _cells[row, ColPct].color = ValueColor;
+                for (var col = ColGen; col < ColumnCount; col++)
+                {
+                    if (col == ColSep)
+                    {
+                        continue;
+                    }
+
+                    _cells[row, col].text = _labels.NoData;
+                    _cells[row, col].color = ValueColor;
+                }
+
                 return;
             }
 
             _cells[row, ColGen].text = PowerFormatter.FormatWatt(snapshot.GenerationWatt);
-            _cells[row, ColSep].text = "/";
             _cells[row, ColCon].text = PowerFormatter.FormatWatt(snapshot.ConsumptionWatt);
             _cells[row, ColCap].text = PowerFormatter.FormatWatt(snapshot.CapacityWatt);
-            _cells[row, ColPct].text = PowerFormatter.FormatPercent(snapshot.SatisfactionRatio);
-            _cells[row, ColPct].color =
-                snapshot.SatisfactionRatio < warningThreshold ? WarningColor : ValueColor;
+            _cells[row, ColAcc].text = PowerFormatter.FormatJoule(snapshot.AccumulatedJoule);
+
+            _cells[row, ColUtil].text = PowerFormatter.FormatPercent(snapshot.UtilizationRatio);
+            _cells[row, ColUtil].color =
+                snapshot.UtilizationRatio >= config.UtilizationWarningPercent.Value / 100.0
+                    ? WarningColor
+                    : ValueColor;
+
+            _cells[row, ColSat].text = PowerFormatter.FormatPercent(snapshot.SatisfactionRatio);
+            _cells[row, ColSat].color =
+                snapshot.SatisfactionRatio < config.SatisfactionWarningPercent.Value / 100.0
+                    ? WarningColor
+                    : ValueColor;
+
+            if (config.ChargeColumn.Value == ChargeColumnMode.Split)
+            {
+                _cells[row, ColCharge].text = PowerFormatter.FormatWatt(snapshot.ChargeWatt);
+                _cells[row, ColCharge].color = ChargeColor;
+                _cells[row, ColDischarge].text = PowerFormatter.FormatWatt(snapshot.DischargeWatt);
+                _cells[row, ColDischarge].color = DischargeColor;
+            }
+            else
+            {
+                var net = snapshot.NetChargeWatt;
+                _cells[row, ColCharge].text = PowerFormatter.FormatSignedWatt(net);
+                _cells[row, ColCharge].color = net < 0.0 ? DischargeColor : ChargeColor;
+            }
         }
 
-        private void ApplyHeaderTexts()
+        private void ApplyHeaderTexts(ChargeColumnMode chargeMode)
         {
             _cells[RowHeader, ColLabel].text = _labels.Title;
             _cells[RowHeader, ColGen].text = _labels.Generation;
             _cells[RowHeader, ColSep].text = string.Empty;
             _cells[RowHeader, ColCon].text = _labels.Demand;
             _cells[RowHeader, ColCap].text = _labels.Capacity;
-            _cells[RowHeader, ColPct].text = _labels.Satisfaction;
+            _cells[RowHeader, ColUtil].text = _labels.Utilization;
+            _cells[RowHeader, ColSat].text = _labels.Satisfaction;
+            _cells[RowHeader, ColCharge].text =
+                chargeMode == ChargeColumnMode.Split ? _labels.Charge : _labels.NetCharge;
+            _cells[RowHeader, ColDischarge].text = _labels.Discharge;
+            _cells[RowHeader, ColAcc].text = _labels.Stored;
 
             for (var col = 0; col < ColumnCount; col++)
             {
@@ -224,14 +253,29 @@ namespace PowerMeter.Plugin.UI
             for (var row = RowPlanet; row <= RowGlobal; row++)
             {
                 _cells[row, ColLabel].color = LabelColor;
-                _cells[row, ColGen].color = ValueColor;
                 _cells[row, ColSep].color = LabelColor;
+                _cells[row, ColGen].color = ValueColor;
                 _cells[row, ColCon].color = ValueColor;
                 _cells[row, ColCap].color = ValueColor;
+                _cells[row, ColAcc].color = ValueColor;
             }
         }
 
-        private void LayoutColumn(
+        /// <summary>任意表示の列を配置し、次の列の開始位置を返す。</summary>
+        private float PlaceOptionalColumn(
+            int col, float x, float width, float rowHeight, float pad, float gap, int fontSize, bool visible)
+        {
+            if (!visible)
+            {
+                PlaceColumn(col, x, width, rowHeight, pad, fontSize, TextAnchor.MiddleRight, false);
+                return x;
+            }
+
+            PlaceColumn(col, x + gap, width, rowHeight, pad, fontSize, TextAnchor.MiddleRight, true);
+            return x + gap + width;
+        }
+
+        private void PlaceColumn(
             int col, float x, float width, float rowHeight, float pad, int fontSize,
             TextAnchor alignment, bool visible)
         {

@@ -22,6 +22,19 @@ namespace PowerMeter.Plugin
         English,
     }
 
+    /// <summary>充放電列の出し方。</summary>
+    public enum ChargeColumnMode
+    {
+        /// <summary>表示しない。</summary>
+        Off,
+
+        /// <summary>充電 - 放電 の差し引きを 1 列で符号付き表示する。</summary>
+        Net,
+
+        /// <summary>充電と放電を別々の列に表示する（ゲーム内パネルと同じ形）。</summary>
+        Split,
+    }
+
     /// <summary>BepInEx 設定ファイルのバインディング。</summary>
     public class PowerMeterConfig
     {
@@ -77,14 +90,33 @@ namespace PowerMeter.Plugin
 
             ShowCapacity = file.Bind(
                 "Columns", "ShowCapacity", true,
-                "発電容量（最大発電能力）の列を表示する。");
+                "発電容量（最大発電能力）の列を表示する。ゲーム内の「発電性能」に対応する。");
+
+            ShowUtilization = file.Bind(
+                "Columns", "ShowUtilization", true,
+                "使用率（実発電量 / 発電容量）の列を表示する。発電設備の余力を見るための指標。");
 
             ShowSatisfaction = file.Bind(
-                "Columns", "ShowSatisfaction", true,
-                "充足率の列を表示する。");
+                "Columns", "ShowSatisfaction", false,
+                "充足率（供給 / 需要）の列を表示する。電力不足のときだけ 100% を下回る。");
 
-            WarningThresholdPercent = file.Bind(
-                "Columns", "WarningThresholdPercent", 95,
+            ChargeColumn = file.Bind(
+                "Columns", "ChargeColumn", ChargeColumnMode.Split,
+                "充放電の列の出し方。Split はゲーム内パネルと同じく充電と放電を分けて表示し、"
+                + "Net は差し引きを 1 列にまとめる。");
+
+            ShowAccumulated = file.Bind(
+                "Columns", "ShowAccumulated", false,
+                "蓄電量（蓄電池に貯まっているエネルギー）の列を表示する。");
+
+            UtilizationWarningPercent = file.Bind(
+                "Columns", "UtilizationWarningPercent", 90,
+                new ConfigDescription(
+                    "使用率がこの値以上になったら警告色で表示する。発電設備の増設時期の目安。",
+                    new AcceptableValueRange<int>(0, 100)));
+
+            SatisfactionWarningPercent = file.Bind(
+                "Columns", "SatisfactionWarningPercent", 95,
                 new ConfigDescription(
                     "充足率がこの値を下回ったら警告色で表示する。",
                     new AcceptableValueRange<int>(0, 100)));
@@ -123,9 +155,17 @@ namespace PowerMeter.Plugin
 
         public ConfigEntry<bool> ShowCapacity { get; }
 
+        public ConfigEntry<bool> ShowUtilization { get; }
+
         public ConfigEntry<bool> ShowSatisfaction { get; }
 
-        public ConfigEntry<int> WarningThresholdPercent { get; }
+        public ConfigEntry<ChargeColumnMode> ChargeColumn { get; }
+
+        public ConfigEntry<bool> ShowAccumulated { get; }
+
+        public ConfigEntry<int> UtilizationWarningPercent { get; }
+
+        public ConfigEntry<int> SatisfactionWarningPercent { get; }
 
         public ConfigEntry<bool> DiagnosticLogging { get; }
 
