@@ -64,6 +64,9 @@ namespace PowerMeter.Core
             // 需要が 0 の電力網（消費者がいない）は「満たされている」とみなす。
             var satisfaction = required > 0L ? (double)served / required : 1.0;
 
+            // 発電設備が無い（融通器からの受電だけで動いている）電力網は使用率 0。
+            var utilization = capacity > 0L ? generationPerTick / capacity : 0.0;
+
             return new PowerSnapshot(
                 isValid: true,
                 networkCount: count,
@@ -71,10 +74,10 @@ namespace PowerMeter.Core
                 generationWatt: generationPerTick * tickPerSecond,
                 consumptionWatt: required * (double)tickPerSecond,
                 servedWatt: served * (double)tickPerSecond,
-                chargeWatt: 0.0,
-                dischargeWatt: 0.0,
+                chargeWatt: charge * (double)tickPerSecond,
+                dischargeWatt: discharge * (double)tickPerSecond,
                 satisfactionRatio: satisfaction,
-                utilizationRatio: 0.0,
+                utilizationRatio: utilization,
                 accumulatedJoule: accumulated);
         }
 
