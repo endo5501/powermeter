@@ -342,10 +342,24 @@ namespace PowerMeter.Plugin.UI
             }
             catch (Exception)
             {
-                // フォント探索に失敗しても既定フォントで動かす。
+                // フォント探索に失敗しても組み込みフォントで動かす。
             }
 
-            return null;
+            // Text.font が null のままだと何も描画されないため、組み込みフォントへ退避する。
+            // Unity 2022.3 では Arial.ttf が LegacyRuntime.ttf に置き換わっている。
+            return LoadBuiltinFont("LegacyRuntime.ttf") ?? LoadBuiltinFont("Arial.ttf");
+        }
+
+        private static Font LoadBuiltinFont(string name)
+        {
+            try
+            {
+                return Resources.GetBuiltinResource<Font>(name);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
     }
 }

@@ -70,6 +70,9 @@ namespace PowerMeter.Plugin
             if (_config.ToggleHotkey.Value.IsDown())
             {
                 _userVisible = !_userVisible;
+
+                // 次の再集計を待たずに即座に反映する。
+                _widget.SetVisible(_userVisible && Global.IsValid);
             }
 
             if (!_config.Enabled.Value)
