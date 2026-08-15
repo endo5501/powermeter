@@ -1,0 +1,25 @@
+<Project>
+
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Deterministic>true</Deterministic>
+    <PowerMeterVersion>0.1.0</PowerMeterVersion>
+    <Authors>endo5501</Authors>
+  </PropertyGroup>
+
+  <!--
+    ゲーム本体 / BepInEx の場所。
+    環境変数 DSP_GAME_DIR, DSP_BEPINEX_DIR で上書きできる（マシン依存を避けるため）。
+  -->
+  <PropertyGroup>
+    <GameDir Condition="'$(GameDir)' == '' and '$(DSP_GAME_DIR)' != ''">$(DSP_GAME_DIR)</GameDir>
+    <GameDir Condition="'$(GameDir)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Dyson Sphere Program</GameDir>
+    <GameManagedDir>$(GameDir)\DSPGAME_Data\Managed</GameManagedDir>
+
+    <BepInExDir Condition="'$(BepInExDir)' == '' and '$(DSP_BEPINEX_DIR)' != ''">$(DSP_BEPINEX_DIR)</BepInExDir>
+    <BepInExDir Condition="'$(BepInExDir)' == ''">$(AppData)\r2modmanPlus-local\DysonSphereProgram\profiles\Default\BepInEx</BepInExDir>
+    <BepInExCoreDir>$(BepInExDir)\core</BepInExCoreDir>
+    <PluginDeployDir>$(BepInExDir)\plugins\PowerMeter</PluginDeployDir>
+  </PropertyGroup>
+
+</Project>

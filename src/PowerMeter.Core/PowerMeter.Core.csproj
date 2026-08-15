@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>PowerMeter.Core</AssemblyName>
+    <RootNamespace>PowerMeter.Core</RootNamespace>
+    <Version>$(PowerMeterVersion)</Version>
+    <Description>ゲーム非依存の電力集計・整形ロジック（ユニットテスト対象）</Description>
+  </PropertyGroup>
+
+</Project>
