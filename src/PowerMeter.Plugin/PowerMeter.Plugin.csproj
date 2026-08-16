@@ -104,7 +104,7 @@
       README のスクリーンショットは同梱しない。zip の大半を占めるうえ、
       Thunderstore も r2modman も README 内の相対パス画像は解決しないため。
     -->
-    <Copy SourceFiles="$(PackagingDir)manifest.json;$(PackagingDir)icon.png;$(RepoRoot)README.md"
+    <Copy SourceFiles="$(PackagingDir)manifest.json;$(PackagingDir)icon.png;$(RepoRoot)README.md;$(RepoRoot)README-ja.md;$(RepoRoot)LICENSE"
           DestinationFolder="$(PackageStageDir)" />
     <Copy SourceFiles="$(TargetPath);$(TargetDir)PowerMeter.Core.dll" DestinationFolder="$(PackageStageDir)" />
 

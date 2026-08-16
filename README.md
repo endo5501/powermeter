@@ -1,69 +1,71 @@
 # PowerMeter
 
-Dyson Sphere Program (DSP) 用の MOD です。**現在の惑星・現在の星系・全星系**の電力状況を、ゲーム画面に常駐するウィジットとして表示します。
+*[日本語版はこちら / Japanese version](README-ja.md)*
 
-電力の様子を見るたびに統計ウィンドウを開き直す必要がなくなり、建設中でも電力の余力やエネルギー中枢のやり取りをそのまま把握できます。
+A Dyson Sphere Program mod that keeps the power situation of **your current planet, your current star system, and every star system** on screen at all times.
 
-![PowerMeter のウィジット](docs/screenshot.png)
+You no longer have to reopen the statistics window every time you want to check power. While you are building, the headroom you have left and the energy moving through your Energy Exchangers are simply there to read.
 
-上のスクリーンショットでは、降りている惑星が需要 288 MW に対して自前の発電は 20.6 MW しかなく、残りをエネルギー中枢からの放電 270 MW で賄っていることが読み取れます。一方で星系全体の使用率は 88% まで上がっており、発電設備の余力が少なくなってきていることも同時に分かります。
+![The PowerMeter widget](https://raw.githubusercontent.com/endo5501/powermeter/main/docs/screenshot.png)
 
-ゲームの HUD 配下に uGUI で描画しているため、フォントや UI スケールはゲーム本体に追従し、メインメニューでは自動的に隠れます。
+In the screenshot above, the planet the mecha is standing on only generates 20.6 MW against a demand of 288 MW — the rest arrives as 270 MW of discharge from an Energy Exchanger. At the same time the star system as a whole is at 88% load, so its generation headroom is running thin.
 
-## 表示項目
+The widget is drawn with uGUI underneath the game's own HUD, so it follows the game's font and UI scale, and hides itself in the main menu.
 
-| 列 | 内容 | ゲーム内統計パネルの対応 |
+## Columns
+
+| Column | What it is | In-game statistics panel |
 |---|---|---|
-| 発電 | 実際に発電されている電力 | （下段サークルの合計値） |
-| 需要 | 消費側が要求している電力 | 必要消費電力 |
-| 容量 | 最大発電能力 | 発電性能 |
-| 使用率 | 発電 / 容量。発電設備の余力の目安 | （PowerMeter 独自） |
-| 充足 | 供給 / 需要。電力不足のときだけ 100% を下回る | 給電率 |
-| 充電 | 蓄電池・エネルギー中枢へ充電されている電力 | 充電工率 |
-| 放電 | 蓄電池・エネルギー中枢から放電されている電力 | 放電工率 |
-| 蓄電 | 蓄電池に貯まっているエネルギー | 蓄電量 |
+| Gen | Power actually being generated | (sum of the lower circles) |
+| Demand | Power the consumers are asking for | Consumption Demand |
+| Cap | Maximum generation capability | Generation Capacity |
+| Load | Gen / Cap. How much generation headroom is left | (PowerMeter's own) |
+| Suff | Served / Demand. Below 100% only when power is short | Sufficiency |
+| Charge | Power going into accumulators and Energy Exchangers | Charging Power |
+| Discharge | Power coming out of them | Discharging Power |
+| Stored | Energy sitting in accumulators | Accumulated |
 
-既定では **発電・需要・容量・使用率・充電・放電** を表示します。充足と蓄電は設定で追加できます。
+**Gen, Demand, Cap, Load, Charge and Discharge** are shown by default. Suff and Stored can be added in the config.
 
-`使用率` は既定で 90% 以上、`充足` は 95% を下回ると警告色になります。
+`Load` turns a warning colour at 90% and above, `Suff` below 95%.
 
-### 表示値についての注意
+### A note on the numbers
 
-ゲーム内パネルと**末尾 1 桁がずれることがあります**（例: 35.9 GW / 35.8 GW）。これはデータの差ではなく丸め方の違いです。ゲーム側の `StringBuilderUtility.WriteKMGPower` は切り捨て、PowerMeter は有効数字 3 桁で四捨五入します。
+The last digit can differ from the in-game panel (for example 35.9 GW against 35.8 GW). This is not a difference in the data — the game's `StringBuilderUtility.WriteKMGPower` truncates, while PowerMeter rounds to 3 significant digits.
 
-## 動作環境
+## Requirements
 
-| 項目 | バージョン |
+| | |
 |---|---|
-| Dyson Sphere Program | Unity 2022.3 系（アーリーアクセス 0.10.34 で確認） |
+| Dyson Sphere Program | Unity 2022.3 line (verified on Early Access 0.10.34) |
 | BepInEx | 5.4.17 |
-| MOD マネージャ | r2modman |
+| Mod manager | r2modman |
 
-## 導入
+## Installing
 
-Thunderstore へは配布していませんが、**r2modman のローカルインポートで通常の MOD と同じように管理できます**。他の MOD と並んで一覧に出て、有効・無効の切り替えもできます。
+PowerMeter is not on Thunderstore, but **r2modman can manage it like any other mod** through a local import — it appears in the mod list alongside everything else and can be toggled on and off.
 
-### 方法 A: r2modman で管理する
+### Option A: let r2modman manage it
 
-配布用の zip を作ります。
+Build the package:
 
 ```
 dotnet build -c Release -t:Package
 ```
 
-`artifacts\endo5501-PowerMeter-<version>.zip` ができるので、r2modman の **Settings → Install local mod** から読み込みます。zip には Thunderstore V1 形式の `manifest.json` が入っているため、名前・作者・バージョン・BepInEx への依存は自動的に認識されます。
+This produces `artifacts\endo5501-PowerMeter-<version>.zip`. Load it from **Settings → Install local mod** in r2modman. The zip carries a Thunderstore V1 `manifest.json`, so the name, author, version and the BepInEx dependency are all picked up automatically.
 
-> **注意**: 方法 B の直接コピーを併用しないでください。`plugins\PowerMeter\` と r2modman が展開したフォルダの両方に同じプラグインが置かれると、GUID が重複して片方が読み込まれません。r2modman 管理へ切り替えるときは `plugins\PowerMeter\` を削除し、`Directory.Build.props` の `DeployToProfile` を `false` にしてください。
+> **Do not combine this with option B.** The same plugin sitting in both `plugins\PowerMeter\` and the folder r2modman unpacks means one GUID registered twice, and BepInEx will refuse to load one of them. When you switch to r2modman, delete `plugins\PowerMeter\` and set `DeployToProfile` to `false` in `Directory.Build.props`.
 
-### 方法 B: 開発中の直接コピー
+### Option B: copy straight into the profile
 
-ビルドすると、既定でプロファイルの plugins フォルダへ直接コピーされます。コードを直して起動し直すだけで試せるので、開発中はこちらが手軽です。
+Building copies the DLLs into the profile's plugins folder by default. During development this is the quicker loop — edit, build, relaunch.
 
 ```
 dotnet build -c Release
 ```
 
-配置先:
+Lands in:
 
 ```
 %AppData%\r2modmanPlus-local\DysonSphereProgram\profiles\Default\BepInEx\plugins\PowerMeter\
@@ -71,132 +73,136 @@ dotnet build -c Release
   PowerMeter.Core.dll
 ```
 
-この自動コピーは `Directory.Build.props` の `DeployToProfile` で切り替えられます。一時的に止めるだけなら `/p:DeployToProfile=false` を付けてください。
+The automatic copy is controlled by `DeployToProfile` in `Directory.Build.props`. To suppress it for a single build, pass `/p:DeployToProfile=false`.
 
-どちらの方法でも、あとは r2modman からゲームを起動するだけです。初回起動時に設定ファイルが生成されます。
+Either way, launch the game from r2modman afterwards. The config file is created on the first run.
 
-### 使い方
+### Using it
 
-`Alt` + `P` でウィジットの表示を切り替えます（キーは設定変更可）。
+`Alt` + `P` toggles the widget. The key is configurable.
 
-## 設定
+## Configuration
 
-設定ファイルはここに生成されます。r2modman の Config editor からも編集できます。
+The config file is written to the path below, and is also reachable through r2modman's Config editor.
 
 ```
 %AppData%\r2modmanPlus-local\DysonSphereProgram\profiles\Default\BepInEx\config\com.endo5501.dsp.PowerMeter.cfg
 ```
 
-位置・文字サイズ・列の増減はゲームを再起動しなくても反映されます。
+Position, font size and which columns are shown all take effect without restarting the game.
 
 ### General
 
-| キー | 既定値 | 説明 |
+| Key | Default | |
 |---|---|---|
-| `Enabled` | `true` | MOD の有効・無効 |
-| `ToggleHotkey` | `P + LeftAlt` | 表示切り替えキー |
-| `UpdateIntervalSeconds` | `0.5` | 再集計の間隔（秒）。0.1〜5.0 |
-| `Language` | `Auto` | ラベルの言語。`Auto` / `Japanese` / `English` |
+| `Enabled` | `true` | Turns the mod on and off |
+| `ToggleHotkey` | `P + LeftAlt` | Visibility toggle |
+| `UpdateIntervalSeconds` | `0.5` | How often the values are recomputed. 0.1–5.0 |
+| `Language` | `Auto` | Label language. `Auto` follows the game's setting. `Japanese` / `English` |
 
 ### Layout
 
-| キー | 既定値 | 説明 |
+| Key | Default | |
 |---|---|---|
-| `Corner` | `TopRight` | 表示する画面の隅。`TopLeft` / `TopRight` / `BottomLeft` / `BottomRight` |
-| `OffsetX` / `OffsetY` | `16` | 隅からのオフセット |
-| `FontSize` | `14` | 文字サイズ。ウィジット全体の寸法も追従する |
-| `BackgroundOpacity` | `0.55` | 背景パネルの不透明度。`0` で背景なし |
+| `Corner` | `TopRight` | `TopLeft` / `TopRight` / `BottomLeft` / `BottomRight` |
+| `OffsetX` / `OffsetY` | `16` | Offset from that corner |
+| `FontSize` | `14` | Font size. The whole widget scales with it |
+| `BackgroundOpacity` | `0.55` | Background panel opacity. `0` for no background |
 
 ### Columns
 
-| キー | 既定値 | 説明 |
+| Key | Default | |
 |---|---|---|
-| `ShowCapacity` | `true` | 容量の列 |
-| `ShowUtilization` | `true` | 使用率の列 |
-| `ShowSatisfaction` | `false` | 充足率の列 |
-| `ChargeColumn` | `Split` | 充放電の出し方。`Split`（充電・放電を分ける） / `Net`（差し引き 1 列） / `Off` |
-| `ShowAccumulated` | `false` | 蓄電量の列 |
-| `UtilizationWarningPercent` | `90` | 使用率がこの値以上で警告色 |
-| `SatisfactionWarningPercent` | `95` | 充足率がこの値未満で警告色 |
+| `ShowCapacity` | `true` | The Cap column |
+| `ShowUtilization` | `true` | The Load column |
+| `ShowSatisfaction` | `false` | The Suff column |
+| `ChargeColumn` | `Split` | `Split` (charge and discharge separately) / `Net` (one signed column) / `Off` |
+| `ShowAccumulated` | `false` | The Stored column |
+| `UtilizationWarningPercent` | `90` | Load warns at this value and above |
+| `SatisfactionWarningPercent` | `95` | Suff warns below this value |
 
 ### Diagnostics
 
-| キー | 既定値 | 説明 |
+| Key | Default | |
 |---|---|---|
-| `DiagnosticLogging` | `false` | 集計結果と丸める前の生の W / J 値を BepInEx のログへ出力する |
-| `DiagnosticLogIntervalSeconds` | `5` | 出力間隔（秒） |
+| `DiagnosticLogging` | `false` | Writes the aggregated results, and the unrounded W / J values, to the BepInEx log |
+| `DiagnosticLogIntervalSeconds` | `5` | How often |
 
-表示値がおかしいときは `DiagnosticLogging` を `true` にすると、`BepInEx\LogOutput.log` に生値が出ます。ゲーム内統計パネルと突き合わせるときに使ってください。
+If a displayed value looks wrong, set `DiagnosticLogging` to `true` and the raw numbers appear in `BepInEx\LogOutput.log`, ready to compare against the in-game statistics panel.
 
-## 開発
+## Development
 
-### 構成
+### Layout
 
-ゲームや Unity に依存しない純粋なロジックを `PowerMeter.Core` に切り出し、そこだけをユニットテストの対象にしています。ゲーム側の型に触れるのは `GamePowerSampler` だけです。
+The logic that depends on neither the game nor Unity lives in `PowerMeter.Core`, and that is the part covered by unit tests. `GamePowerSampler` is the only file that touches game types.
 
 ```
 PowerMeter.sln
-Directory.Build.props            ゲーム / BepInEx のパス、配置の切り替え
+Directory.Build.props            Game / BepInEx paths, deployment switch
 packaging/
-  manifest.json                  Thunderstore V1 形式。author 付きなのでファイル名規約は不要
+  manifest.json                  Thunderstore V1. Carries author, so no filename convention needed
   icon.png                       256x256
 src/
-  PowerMeter.Core/               netstandard2.0。ゲーム・Unity 参照ゼロ
-    PowerScope.cs                集計範囲 (Planet / Star / Global)
-    NetworkSample.cs             電力網 1 つ分の生値
-    PowerSnapshot.cs             集計結果
-    PowerAggregator.cs           スコープ別の合算と各種比率
-    PowerFormatter.cs            W / J / % の整形
-  PowerMeter.Plugin/             net472。BepInEx グルー
-    PowerMeterPlugin.cs          エントリポイント
-    PowerMeterConfig.cs          設定バインディング
-    GamePowerSampler.cs          ゲーム状態 -> NetworkSample の境界
-    UI/PowerMeterWidget.cs       uGUI ウィジット
-    UI/WidgetLabels.cs           ラベルの日本語 / 英語
+  PowerMeter.Core/               netstandard2.0. No game or Unity references
+    PowerScope.cs                Aggregation scope (Planet / Star / Global)
+    NetworkSample.cs             Raw values of one power network
+    PowerSnapshot.cs             Aggregated result
+    PowerAggregator.cs           Per-scope sums and ratios
+    PowerFormatter.cs            W / J / % formatting
+  PowerMeter.Plugin/             net472. BepInEx glue
+    PowerMeterPlugin.cs          Entry point
+    PowerMeterConfig.cs          Config binding
+    GamePowerSampler.cs          Game state -> NetworkSample, the boundary
+    UI/PowerMeterWidget.cs       The uGUI widget
+    UI/WidgetLabels.cs           English / Japanese labels
 tests/
   PowerMeter.Core.Tests/         net7.0 / xUnit
 ```
 
-### 必要なもの
+### What you need
 
-- .NET SDK 7 以降
-- DSP 本体と、BepInEx 5.4.17 を導入済みの r2modman プロファイル
+- .NET SDK 7 or newer
+- The game, and an r2modman profile with BepInEx 5.4.17 installed
 
-ゲーム DLL と BepInEx はローカルのインストール先から直接参照します。NuGet フィードの追加設定は不要で、依存パッケージは net472 の参照アセンブリとテスト関連だけです。
+Game DLLs and BepInEx are referenced straight from the local install, so no NuGet feed configuration is needed — the only packages are the net472 reference assemblies and the test dependencies.
 
-パスが標準と違う場合は環境変数で上書きできます。
+If your paths differ from the defaults, override them with environment variables:
 
 ```
-DSP_GAME_DIR      ゲーム本体のフォルダ
-DSP_BEPINEX_DIR   BepInEx のフォルダ（プロファイル配下）
+DSP_GAME_DIR      The game folder
+DSP_BEPINEX_DIR   The BepInEx folder (inside the profile)
 ```
 
-### テスト
+### Tests
 
 ```
 dotnet test
 ```
 
-### パッケージング
+### Packaging
 
 ```
 dotnet build -c Release -t:Package
 ```
 
-`artifacts\endo5501-PowerMeter-<version>.zip` に `manifest.json` / `icon.png` / `README.md` / 2 つの DLL をまとめます。Thunderstore のパッケージ形式そのままなので、将来 Thunderstore へ出すときもこの zip がそのまま使えます。
+Collects `manifest.json`, `icon.png`, both READMEs, `LICENSE` and the two DLLs into `artifacts\endo5501-PowerMeter-<version>.zip`. It is a Thunderstore package as-is, so the same zip works for publishing there.
 
-バージョンは `Directory.Build.props` の `PowerMeterVersion` が唯一の情報源です。`packaging/manifest.json` の `version_number` がこれと食い違っているとパッケージング時にエラーになります。Debug 構成で実行した場合もエラーになります。
+`PowerMeterVersion` in `Directory.Build.props` is the single source of truth for the version. Packaging fails if `version_number` in `packaging/manifest.json` has drifted from it, and it fails outside the Release configuration.
 
-README のスクリーンショットは zip に含めていません。Thunderstore も r2modman も README 内の相対パス画像を解決しないため、zip を膨らませるだけになるからです。
+The screenshot is deliberately left out of the zip. Neither Thunderstore nor r2modman resolves relative image paths in a README, so the READMEs link to it by absolute URL on GitHub instead and the image still renders on the package page.
 
-### 電力値の取得元
+### Where the power values come from
 
-`GameMain.data.factories[i].powerSystem.netPool[]` の各 `PowerNetwork` を直接合算しています。この値は tick をまたいで保持されるため、UI 側から安全に読み取れます。W への換算は `GameMain.tickPerSecI` 倍です。
+Every `PowerNetwork` in `GameMain.data.factories[i].powerSystem.netPool[]` is summed directly. Those values persist across ticks, so reading them from UI code is safe. Converting to watts is a multiplication by `GameMain.tickPerSecI`.
 
-以下は**使っていません**。理由も残しておきます。
+The following are **not** used, and the reasons are worth keeping:
 
-- `FactoryProductionStat.powerGenRegister` などのレジスタ — 毎 tick 集計後にクリアされるため、UI から読むと 0 や途中値を掴む
-- `AstroPowerStatPlan.CalculateAstroPowerBaseInfo()` — `statFactoryIndices` などの内部状態に依存し、`OnInit` のライフサイクル無しには単体で使えない
-- `PowerNetwork.energyAccumulated` — 名前は近いが建物ツールチップ用の値。統計ウィンドウの「蓄電量」は `energyStored`
+- `FactoryProductionStat.powerGenRegister` and the other registers — cleared after each tick's aggregation, so reading them from the UI catches zeroes or partial values
+- `AstroPowerStatPlan.CalculateAstroPowerBaseInfo()` — depends on internal state such as `statFactoryIndices` and cannot be used standalone without the `OnInit` lifecycle
+- `PowerNetwork.energyAccumulated` — close in name, but it belongs to the building tooltip. The statistics window's Accumulated is `energyStored`
 
-各項目はゲーム内統計パネルと実機で突き合わせて確認済みです。エネルギー中枢で受電・充電している惑星の挙動は回帰テストとして固定してあります。
+Every column was checked against the in-game statistics panel on a live save. The behaviour of planets receiving from and charging into an Energy Exchanger is pinned by regression tests.
+
+## License
+
+MIT. See [LICENSE](LICENSE).

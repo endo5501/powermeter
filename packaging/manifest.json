@@ -2,8 +2,8 @@
   "name": "PowerMeter",
   "author": "endo5501",
   "version_number": "0.1.0",
-  "website_url": "",
-  "description": "現在の惑星・現在の星系・全星系の電力を常時表示するウィジット。発電・需要・容量・使用率・充放電をゲーム画面の隅にまとめて出します。",
+  "website_url": "https://github.com/endo5501/powermeter",
+  "description": "Keeps power generation, demand, capacity, load and charge/discharge for your current planet, current star system and every star system on screen at all times.",
   "dependencies": [
     "xiaoye97-BepInEx-5.4.17"
   ]
